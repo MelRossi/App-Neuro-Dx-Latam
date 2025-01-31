@@ -284,73 +284,73 @@ if predict_file:
         st.write("## <span style='color: #EA937F; font-size: 24px;'>Datos cargados para predicción:</span>", unsafe_allow_html=True)
         st.dataframe(predict_data.head())
 
-def procesar_nuevo_dataset(predict_data, dftrain):
-    """
-    Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de referencia.
+    def procesar_nuevo_dataset(predict_data, dftrain):
+        """
+        Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de referencia.
+        
+        :param nuevo_df: DataFrame con los nuevos datos
+        :param df_referencia: DataFrame de referencia con las columnas y tipos esperados
+        :return: DataFrame procesado
+        """
+        # Copiar la estructura de las columnas del dataset de referencia
+        columnas_referencia = dftrain.columns.tolist()
+        
+        # Convertir columnas categóricas a numéricas usando la estructura de df_referencia
+        for col in predict_data.columns:
+            if col in dftrain.columns and dftrain[col].dtype == 'float64':
+                nuevo_df[col] = pd.to_numeric(nuevo_df[col], errors='coerce')
+        
+        # Asegurar que las columnas estén en el mismo orden y agregar las faltantes
+        for col in columnas_referencia:
+            if col not in predict_data:
+                predict_data[col] = np.nan  # Agregar columnas faltantes con valores NaN
+        
+        predict_data = predict_data[columnas_referencia]  # Reordenar columnas
+        
+        return predict_data
     
-    :param nuevo_df: DataFrame con los nuevos datos
-    :param df_referencia: DataFrame de referencia con las columnas y tipos esperados
-    :return: DataFrame procesado
-    """
-    # Copiar la estructura de las columnas del dataset de referencia
-    columnas_referencia = dftrain.columns.tolist()
+        # Convertir variables categóricas a numéricas (como en el entrenamiento)
+        predict_data = pd.get_dummies(predict_data, drop_first=True)
     
-    # Convertir columnas categóricas a numéricas usando la estructura de df_referencia
-    for col in predict_data.columns:
-        if col in dftrain.columns and dftrain[col].dtype == 'float64':
-            nuevo_df[col] = pd.to_numeric(nuevo_df[col], errors='coerce')
+        # Asegurar que las columnas sean iguales a las de entrenamiento
+        missing_cols = set(X.columns) - set(predict_data.columns)
+        extra_cols = set(predict_data.columns) - set(X.columns)
     
-    # Asegurar que las columnas estén en el mismo orden y agregar las faltantes
-    for col in columnas_referencia:
-        if col not in predict_data:
-            predict_data[col] = np.nan  # Agregar columnas faltantes con valores NaN
+        # Llenar las columnas faltantes con 0 y eliminar las sobrantes
+        predict_data = predict_data.reindex(columns=X.columns, fill_value=0)
     
-    predict_data = predict_data[columnas_referencia]  # Reordenar columnas
+        st.write(f"🔹 Columnas faltantes rellenadas: {missing_cols}")
+        st.write(f"🔹 Columnas eliminadas del archivo de predicción: {extra_cols}")
     
-    return predict_data
-
-    # Convertir variables categóricas a numéricas (como en el entrenamiento)
-    predict_data = pd.get_dummies(predict_data, drop_first=True)
-
-    # Asegurar que las columnas sean iguales a las de entrenamiento
-    missing_cols = set(X.columns) - set(predict_data.columns)
-    extra_cols = set(predict_data.columns) - set(X.columns)
-
-    # Llenar las columnas faltantes con 0 y eliminar las sobrantes
-    predict_data = predict_data.reindex(columns=X.columns, fill_value=0)
-
-    st.write(f"🔹 Columnas faltantes rellenadas: {missing_cols}")
-    st.write(f"🔹 Columnas eliminadas del archivo de predicción: {extra_cols}")
-
-try:
-    predictions = rf_model.predict(predict_data)
-    probabilities = rf_model.predict_proba(predict_data)
-
-    # Crear DataFrame con los resultados
-    result_df = predict_data.copy()
-    result_df["Predicción"] = predictions
-    result_df["Probabilidad"] = probabilities.max(axis=1)
-
-    # Mostrar resultados solo si no hay errores
-    st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
-    st.dataframe(result_df)
-
+    # Realizar predicciones con el modelo cargado
+    try:
+        predictions = rf_model.predict(predict_data)
+        probabilities = rf_model.predict_proba(predict_data)
+    
+        # Crear DataFrame con los resultados
+        result_df = predict_data.copy()
+        result_df["Predicción"] = predictions
+        result_df["Probabilidad"] = probabilities.max(axis=1)
+    
+        # Mostrar resultados solo si no hay errores
+        st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
+        st.dataframe(result_df)
+    
+    except Exception as e:
+        st.error(f"Se produjo un error al realizar las predicciones: {e}")
+    
     # Crear gráfico solo si hay más de una clase predicha
-    fig, ax = plt.subplots()
-    pred_counts = result_df["Predicción"].value_counts()
-
-    if len(pred_counts) > 1:
-        pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
-        ax.set_title("Distribución de Predicciones")
-        ax.set_xlabel("Clase Predicha")
-        ax.set_ylabel("Frecuencia")
-        st.pyplot(fig)
-    else:
-        st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
-
-except Exception as e:
-    st.error(f"Error al realizar las predicciones: {e}")
-
+        fig, ax = plt.subplots()
+        pred_counts = result_df["Predicción"].value_counts()
+    
+        if len(pred_counts) > 1:
+            pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
+            ax.set_title("Distribución de Predicciones")
+            ax.set_xlabel("Clase Predicha")
+            ax.set_ylabel("Frecuencia")
+            st.pyplot(fig)
+        else:
+            st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
 else:
     st.error("El archivo de predicción está vacío o no se pudo procesar.")
 
