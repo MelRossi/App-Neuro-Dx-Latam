@@ -265,7 +265,7 @@ modelo = joblib.load("rfc_model.pkl")
 st.sidebar.header(" Ingrese valores para la predicción")
 
 columnas = ["EDAD", "SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO",
-            "No.METS", "TAMAÑO(mm)", "LOCALIZACION", "DOSIS_(Gy)", 
+            "No.METS", "TAMAÑO(mm)", "LOCALIZACION", "DOSIS_(Gy)",
             "TECNICA", "TRATAMIENTO_SISTEMICO"]
 
 datos_usuario = []
@@ -279,6 +279,11 @@ for col in columnas:
 
         # Use st.number_input for numeric columns and st.selectbox for categorical
         if pd.api.types.is_numeric_dtype(data2[col]):
+            # **Ensure consistent data types for number_input**
+            min_val = float(min_val)
+            max_val = float(max_val)
+            mean_val = float(mean_val)
+
             valor = st.sidebar.number_input(f"{col}", min_value=min_val, max_value=max_val, value=mean_val)
         else:
             unique_values = data2[col].unique().tolist()
@@ -287,8 +292,6 @@ for col in columnas:
     else:
         st.warning(f"Columna '{col}' no encontrada en el dataset. Se usará un valor predeterminado.")
         datos_usuario.append(0)  # Or another suitable default value
-
-datos_usuario = np.array(datos_usuario).reshape(1, -1)
 
 if st.sidebar.button("Predecir"):
     prediccion = modelo.predict(datos_usuario)
