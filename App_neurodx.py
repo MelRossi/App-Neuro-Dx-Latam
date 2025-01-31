@@ -199,16 +199,15 @@ elif plot_type == "Boxplot":
     else:
         st.warning(f"La variable **{column_y}** no es numérica. No se pueden calcular valores atípicos.")
 
+# **Selección de la variable objetivo**
+st.write("## <span style='color: #EA937F;'>2. Selección de Modelo</span>", unsafe_allow_html=True)
 # Carga archivo de entrenamiento
 data2 = pd.read_csv("dftrain.csv", encoding="latin-1")  # Asegúrate de que este archivo existe
 
 st.write("Vista previa del segundo dataset:")
 st.dataframe(data2.head())
 
-# **Selección de la variable objetivo**
-st.write("## <span style='color: #EA937F;'>2. Selección de Columnas</span>", unsafe_allow_html=True)
-
- # Verificar si la columna RESPUESTA_BINARIA existe en el dataset
+# Verificar si la columna RESPUESTA_BINARIA existe en el dataset
 if "RESPUESTA_BINARIA" in data.columns:
         # Separar variables X e y
         X = data2.drop(columns=["RESPUESTA_BINARIA"])
