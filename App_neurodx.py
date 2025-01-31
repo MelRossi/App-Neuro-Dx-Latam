@@ -211,8 +211,8 @@ data2 = pd.read_csv("dftrain.csv", encoding="latin-1")
 st.write("Vista previa del segundo dataset:")
 st.dataframe(data2.head())
 
-    # 1. Identifica y maneja columnas no numéricas:
-    for col in data2.columns:
+# 1. Identifica y maneja columnas no numéricas:
+for col in data2.columns:
         if data2[col].dtype == 'object':  # Columna no numérica
             try:
                 # Intenta convertir a numérica (si son números como cadenas)
@@ -228,58 +228,58 @@ st.dataframe(data2.head())
                     data2 = data2.drop(columns=[col])
     
     # 2. Maneja los NaN (si los hay después de pd.to_numeric):
-    data2 = data2.fillna(0)  # Ejemplo: imputación con 0.  Considera otras estrategias.
+data2 = data2.fillna(0)  # Ejemplo: imputación con 0.  Considera otras estrategias.
     
     # 3. Define X e y (después de la limpieza y conversión):
-    X = data2.drop(columns=["RESPUESTA_BINARIA"])
-    y = data2["RESPUESTA_BINARIA"]
+X = data2.drop(columns=["RESPUESTA_BINARIA"])
+y = data2["RESPUESTA_BINARIA"]
     
     # 4. Ahora aplica SMOTE:
-    smote = SMOTE(sampling_strategy=0.4, random_state=42)
-    X_resampled, y_resampled = smote.fit_resample(X, y)
+smote = SMOTE(sampling_strategy=0.4, random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, y)
 
-    st.write("Distribución después del balanceo:", y_resampled.value_counts(normalize=True))
+st.write("Distribución después del balanceo:", y_resampled.value_counts(normalize=True))
 
-    X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
 
-    rf_model = RandomForestClassifier(random_state=42)
-    rf_model.fit(X_train, y_train)
+rf_model = RandomForestClassifier(random_state=42)
+rf_model.fit(X_train, y_train)
 
-    y_pred = rf_model.predict(X_test)
-    y_prob = rf_model.predict_proba(X_test)[:, 1]
+y_pred = rf_model.predict(X_test)
+y_prob = rf_model.predict_proba(X_test)[:, 1]
 
-    accuracy = accuracy_score(y_test, y_pred)
-    st.write(f"**Exactitud del modelo:** {accuracy:.4f}")
+accuracy = accuracy_score(y_test, y_pred)
+st.write(f"**Exactitud del modelo:** {accuracy:.4f}")
 
-    roc_auc = roc_auc_score(y_test, y_prob)
-    st.write(f"**AUC-ROC:** {roc_auc:.4f}")
+roc_auc = roc_auc_score(y_test, y_prob)
+st.write(f"**AUC-ROC:** {roc_auc:.4f}")
 
-    fpr, tpr, _ = roc_curve(y_test, y_prob)
-    fig, ax = plt.subplots()
-    ax.plot(fpr, tpr, label=f"ROC curve (AUC = {roc_auc:.2f})")
-    ax.plot([0, 1], [0, 1], "k--")
-    ax.set_xlabel("False Positive Rate")
-    ax.set_ylabel("True Positive Rate")
-    ax.set_title("Curva ROC")
-    ax.legend(loc="lower right")
-    st.pyplot(fig)
+fpr, tpr, _ = roc_curve(y_test, y_prob)
+fig, ax = plt.subplots()
+ax.plot(fpr, tpr, label=f"ROC curve (AUC = {roc_auc:.2f})")
+ax.plot([0, 1], [0, 1], "k--")
+ax.set_xlabel("False Positive Rate")
+ax.set_ylabel("True Positive Rate")
+ax.set_title("Curva ROC")
+ax.legend(loc="lower right")
+st.pyplot(fig)
 
-    cm = confusion_matrix(y_test, y_pred)
-    fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test), ax=ax)
-    ax.set_xlabel("Predicción")
-    ax.set_ylabel("Verdadero")
-    ax.set_title("Matriz de Confusión")
-    st.pyplot(fig)
+cm = confusion_matrix(y_test, y_pred)
+fig, ax = plt.subplots()
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test), ax=ax)
+ax.set_xlabel("Predicción")
+ax.set_ylabel("Verdadero")
+ax.set_title("Matriz de Confusión")
+st.pyplot(fig)
 
-    st.text("Reporte de Clasificación:")
-    reporte = classification_report(y_test, y_pred, output_dict=True)
-    df_reporte = pd.DataFrame(reporte).transpose()
-    st.table(df_reporte)
+st.text("Reporte de Clasificación:")
+reporte = classification_report(y_test, y_pred, output_dict=True)
+df_reporte = pd.DataFrame(reporte).transpose()
+st.table(df_reporte)
 
  # Agregar conclusión basada en los resultados
-    st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción</span>", unsafe_allow_html=True)
-    st.write("""Métricas de evaluación:\n
+st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción</span>", unsafe_allow_html=True)
+st.write("""Métricas de evaluación:\n
 - Precisión (Precision): De todas las predicciones positivas realizadas por el modelo, ¿cuántas fueron realmente correctas?\n
 - Recall (Sensibilidad): De todos los casos positivos reales, ¿cuántos fueron correctamente identificados por el modelo?\n
 - F1-score: Media armónica entre precisión y recall. Ofrece un equilibrio entre precisión y recall.
@@ -289,7 +289,7 @@ st.dataframe(data2.head())
 - Weighted avg (Promedio ponderado): Promedio ponderado de las métricas para cada clase, donde los pesos son el soporte (número de muestras en cada clase).""")
 
 else:
-    st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
+st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
 joblib.dump(rf_model, "rfc_model.pkl")
 
