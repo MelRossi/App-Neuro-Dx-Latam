@@ -208,6 +208,7 @@ st.write("## <span style='color: #EA937F;'>2. Entrenar de Modelo</span>", unsafe
 # Carga archivo de entrenamiento
 data2 = pd.read_csv("dftrain.csv", encoding="latin-1")  
 
+st.write("Modelo elegido -> Random Forest")
 st.write("Vista previa del segundo dataset:")
 st.dataframe(data2.head())
 
