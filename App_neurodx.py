@@ -206,30 +206,6 @@ elif plot_type == "Boxplot":
 # **Selección de la variable objetivo**
 st.write("## <span style='color: #EA937F;'>2. Entrenar de Modelo</span>", unsafe_allow_html=True)
 # Carga archivo de entrenamiento
-data2 = pd.read_csv("dftrain.csv", encoding="latin-1")
-
-st.write("Vista previa del segundo dataset:")
-st.dataframe(data2.head())
-
-# 1. Identifica y maneja columnas no numéricas:
-for col in data2.columns:
-        if data2[col].dtype == 'object':  # Columna no numérica
-            try:
-                # Intenta convertir a numérica (si son números como cadenas)
-                data2[col] = pd.to_numeric(data2[col], errors='coerce')
-            except:
-                # Si no se puede convertir a numérica, codifica o elimina:
-                if col == 'columna_ordinal':  # Ejemplo: columna ordinal
-                    le = LabelEncoder()
-                    data2[col] = le.fit_transform(data2[col])
-                elif col == 'columna_nominal': #Ejemplo: columna nominal
-                    data2 = pd.get_dummies(data2, columns=[col], drop_first=True)
-                else:  # Si no es útil para el modelo
-                    data2 = data2.drop(columns=[col])
-    
-# **Selección de la variable objetivo**
-st.write("## <span style='color: #EA937F;'>2. Entrenar de Modelo</span>", unsafe_allow_html=True)
-# Carga archivo de entrenamiento
 data2 = pd.read_csv("dftrain.csv", encoding="latin-1")  
 
 st.write("Vista previa del segundo dataset:")
