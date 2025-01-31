@@ -390,6 +390,21 @@ opciones = cargar_opciones(data2, columnas)
 # Diccionario para almacenar los datos del usuario
 datos_usuario = {}
 
+# Estilo CSS personalizado para los widgets
+st.markdown(
+    """
+    <style>
+    .stSelectbox, .stSlider, .stNumberInput {
+        width: 100%;  # Ajustar el ancho si es necesario
+        margin-bottom: 10px;  # Agregar espacio entre los widgets
+        border: 1px solid #ccc;  # Agregar un borde
+        padding: 5px;  # Agregar relleno interno
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # Iterar sobre las columnas para crear los widgets de la barra lateral
 for col in columnas:
     if col in opciones:
