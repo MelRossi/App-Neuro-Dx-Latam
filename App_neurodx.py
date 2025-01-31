@@ -208,85 +208,63 @@ st.dataframe(data2.head())
 # **Selección de la variable objetivo**
 st.write("## <span style='color: #EA937F;'>2. Selección de Columnas</span>", unsafe_allow_html=True)
 
-target_col = st.selectbox(
-    "Variable objetivo (Y):",
-    data2.columns,
-    index=data2.columns.get_loc("RESPUESTA_BINARIA") if "RESPUESTA_BINARIA" in data2.columns else 0
-)
-feature_cols = st.multiselect("Selecciona las características (X):", [col for col in data2.columns if col != target_col])
+# Separar variables X e y
+    if "RESPUESTA_BINARIA" in data.columns:
+        X = data2.drop(columns=["RESPUESTA_BINARIA"])
+        y = data2["RESPUESTA_BINARIA"]
 
-if target_col and feature_cols:
-    st.write("## <span style='color: #EA937F;'>3. Entrenamiento del Modelo</span>", unsafe_allow_html=True)
-    
-    X = data2[feature_cols]
-    y = data2[target_col]
+        # Aplicar SMOTE para balancear la clase minoritaria
+        smote = SMOTE(sampling_strategy=0.4, random_state=42)
+        X_resampled, y_resampled = smote.fit_resample(X, y)
 
-    X = pd.get_dummies(X, drop_first=True)
+        st.write("Distribución después del balanceo:", y_resampled.value_counts(normalize=True))
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        # Dividir los datos en entrenamiento y prueba
+        X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
 
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+        # Entrenar el modelo Random Forest
+        rf_model = RandomForestClassifier(random_state=42)
+        rf_model.fit(X_train, y_train)
 
-    smote = SMOTE(random_state=42)
-    X_train_res, y_train_res = smote.fit_resample(X_train_scaled, y_train)
+        # Realizar predicciones
+        y_pred = rf_model.predict(X_test)
+        y_prob = rf_model.predict_proba(X_test)[:, 1]  # Probabilidad para la clase positiva
 
-    # Modelos y parámetros
-    param_grid_lr = {'penalty': ['l1', 'l2'], 'C': [0.1, 1, 10], 'solver': ['liblinear', 'saga']}
-    param_grid_dt = {'max_depth': [None, 5, 10, 20], 'min_samples_split': [2, 5, 10], 'min_samples_leaf': [1, 2, 4], 'criterion': ['gini', 'entropy']}
-    param_grid_rf = {'n_estimators': [100, 200, 300], 'max_depth': [None, 5, 10], 'min_samples_split': [2, 5, 10]}
+        # Evaluación del modelo
+        accuracy = accuracy_score(y_test, y_pred)
+        st.write(f"**Exactitud del modelo:** {accuracy:.4f}")
 
-    best_params_lr = realizar_grid_search(LogisticRegression(random_state=42), param_grid_lr, X_train_res, y_train_res)
-    best_params_dt = realizar_grid_search(DecisionTreeClassifier(random_state=42), param_grid_dt, X_train_res, y_train_res)
-    best_params_rf = realizar_grid_search(RandomForestClassifier(random_state=42), param_grid_rf, X_train_res, y_train_res)
+        roc_auc = roc_auc_score(y_test, y_prob)
+        st.write(f"**AUC-ROC:** {roc_auc:.4f}")
 
-    st.write("## <span style='color: #EA937F; font-size: 24px; '>Selecciona el modelo de aprendizaje:</span>", unsafe_allow_html=True)
-    model_choice = st.selectbox("Modelo:", ["Logistic Regression", "Decision Tree", "Random Forest"])
+        # Curva ROC
+        fpr, tpr, _ = roc_curve(y_test, y_prob)
+        fig, ax = plt.subplots()
+        ax.plot(fpr, tpr, label=f"ROC curve (AUC = {roc_auc:.2f})")
+        ax.plot([0, 1], [0, 1], "k--")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        ax.set_title("Curva ROC")
+        ax.legend(loc="lower right")
+        st.pyplot(fig)
 
-    if model_choice == "Logistic Regression":
-        modelo = LogisticRegression(**best_params_lr, max_iter=1000, random_state=42)
-    elif model_choice == "Decision Tree":
-        modelo = DecisionTreeClassifier(**best_params_dt, random_state=42)
-    elif model_choice == "Random Forest":
-        modelo = RandomForestClassifier(**best_params_rf, random_state=42)
+        # Matriz de confusión
+        cm = confusion_matrix(y_test, y_pred)
+        fig, ax = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test), ax=ax)
+        ax.set_xlabel("Predicción")
+        ax.set_ylabel("Verdadero")
+        ax.set_title("Matriz de Confusión")
+        st.pyplot(fig)
 
-    modelo.fit(X_train_res, y_train_res)
+        # Reporte de clasificación
+        st.text("Reporte de Clasificación:")
+        reporte = classification_report(y_test, y_pred, output_dict=True)
+        df_reporte = pd.DataFrame(reporte).transpose()
+        st.table(df_reporte)
 
-    y_pred = modelo.predict(X_test_scaled)
-    y_prob = modelo.predict_proba(X_test_scaled)
-
-    accuracy = accuracy_score(y_test, y_pred)
-    st.write("**Exactitud del modelo:**", accuracy)
-
-    if len(np.unique(y_test)) > 2:
-        roc_auc = roc_auc_score(y_test, y_prob, multi_class='ovr')
-        st.write("**AUC-ROC (multiclase):**", roc_auc)
     else:
-        roc_auc = roc_auc_score(y_test, y_prob[:, 1])
-        st.write("**AUC-ROC:**", roc_auc)
-
-        fpr, tpr, _ = roc_curve(y_test, y_prob[:, 1])
-        plt.figure()
-        plt.plot(fpr, tpr, label=f"ROC curve (area = {roc_auc:.2f})")
-        plt.plot([0, 1], [0, 1], "k--")
-        plt.xlabel("False Positive Rate")
-        plt.ylabel("True Positive Rate")
-        plt.title("Curva ROC")
-        plt.legend(loc="lower right")
-        st.pyplot(plt)
-
-    st.write("**Matriz de Confusión:**")
-    cm = confusion_matrix(y_test, y_pred)
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=np.unique(y_test), yticklabels=np.unique(y_test))
-    plt.xlabel("Predicción")
-    plt.ylabel("Verdadero")
-    st.pyplot(plt)
-
-    st.text("Reporte de Clasificación:")
-    reporte = classification_report(y_test, y_pred, output_dict=True)
-    df_reporte = pd.DataFrame(reporte).transpose()
-    st.table(df_reporte)
+        st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
     # Explicación de métricas
     st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción de las métricas</span>", unsafe_allow_html=True)
