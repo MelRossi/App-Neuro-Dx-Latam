@@ -200,7 +200,7 @@ elif plot_type == "Boxplot":
         st.warning(f"La variable **{column_y}** no es numérica. No se pueden calcular valores atípicos.")
 
 # **Selección de la variable objetivo**
-st.write("## <span style='color: #EA937F;'>2. Entrenamiento de Modelo</span>", unsafe_allow_html=True)
+st.write("## <span style='color: #EA937F;'>2. Entrenar de Modelo</span>", unsafe_allow_html=True)
 # Carga archivo de entrenamiento
 data2 = pd.read_csv("dftrain.csv", encoding="latin-1")  # Asegúrate de que este archivo existe
 
