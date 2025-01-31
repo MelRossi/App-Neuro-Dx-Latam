@@ -332,27 +332,27 @@ def procesar_nuevo_dataset(predict_data, dftrain):
         result_df["Predicción"] = predictions
         result_df["Probabilidad"] = probabilities.max(axis=1)
 
-        st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
-        st.dataframe(result_df)
+    st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
+    st.dataframe(result_df)
 
-        # Crear gráfico solo si hay más de una clase predicha
-        fig, ax = plt.subplots()
-        pred_counts = result_df["Predicción"].value_counts()
+    # Crear gráfico solo si hay más de una clase predicha
+    fig, ax = plt.subplots()
+    pred_counts = result_df["Predicción"].value_counts()
 
-        if len(pred_counts) > 1:
-            pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
-            ax.set_title("Distribución de Predicciones")
-            ax.set_xlabel("Clase Predicha")
-            ax.set_ylabel("Frecuencia")
-            st.pyplot(fig)
-        else:
-            st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
-
-    except Exception as e:
-        st.error(f"Error al realizar las predicciones: {e}")
-
+    if len(pred_counts) > 1:
+        pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
+        ax.set_title("Distribución de Predicciones")
+        ax.set_xlabel("Clase Predicha")
+        ax.set_ylabel("Frecuencia")
+        st.pyplot(fig)
     else:
-        st.error("El archivo de predicción está vacío o no se pudo procesar.")
+        st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
+
+except Exception as e:
+    st.error(f"Error al realizar las predicciones: {e}")
+
+else:
+    st.error("El archivo de predicción está vacío o no se pudo procesar.")
 
 #  Cargar el modelo entrenado
 modelo = joblib.load("rfc_model.pkl")
