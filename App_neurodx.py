@@ -286,8 +286,8 @@ else:
     st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
  # Agregar conclusión basada en los resultados
-    st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción</span>", unsafe_allow_html=True)
-    st.write("""Métricas de evaluación:\n
+st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción</span>", unsafe_allow_html=True)
+st.write("""Métricas de evaluación:\n
 - Precisión (Precision): De todas las predicciones positivas realizadas por el modelo, ¿cuántas fueron realmente correctas?\n
 - Recall (Sensibilidad): De todos los casos positivos reales, ¿cuántos fueron correctamente identificados por el modelo?\n
 - F1-score: Media armónica entre precisión y recall. Ofrece un equilibrio entre precisión y recall.
