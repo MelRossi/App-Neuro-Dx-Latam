@@ -52,6 +52,9 @@ def mostrar_grafico(data, column_x, column_y, plot_type):
     st.pyplot(plt)
     plt.clf()
 
+@st.cache_data
+def cargar_datos_entrenamiento():
+    return pd.read_csv("/mnt/data/dftrain.csv", encoding="latin-1")
    
 # Configuración de la app
 st.markdown(
@@ -273,26 +276,40 @@ st.write("## <span style='color: #EA937F;'>3. Predicción</span>", unsafe_allow_
 predict_file = st.file_uploader("Archivo de predicción (CSV):", type=["csv"], key="predict")
 
 if predict_file:
-        predict_data = cargar_datos(predict_file)
-        if predict_data is not None:
-            st.write("## <span style='color: #EA937F; font-size: 24px; '>Datos cargados para predicción:</span>", unsafe_allow_html=True)
-            st.dataframe(predict_data.head())
+    predict_data = cargar_datos(predict_file)
 
-            predict_data = pd.get_dummies(predict_data, drop_first=True)
-            predict_data = predict_data.reindex(columns=X.columns, fill_value=0)
+    if predict_data is not None and not predict_data.empty:
+        st.write("## <span style='color: #EA937F; font-size: 24px;'>Datos cargados para predicción:</span>", unsafe_allow_html=True)
+        st.dataframe(predict_data.head())
 
+        # Convertir variables categóricas a numéricas (como en el entrenamiento)
+        predict_data = pd.get_dummies(predict_data, drop_first=True)
+
+        # Asegurar que las columnas sean iguales a las de entrenamiento
+        missing_cols = set(X.columns) - set(predict_data.columns)
+        extra_cols = set(predict_data.columns) - set(X.columns)
+
+        # Llenar las columnas faltantes con 0 y eliminar las sobrantes
+        predict_data = predict_data.reindex(columns=X.columns, fill_value=0)
+
+        st.write(f"🔹 Columnas faltantes rellenadas: {missing_cols}")
+        st.write(f"🔹 Columnas eliminadas del archivo de predicción: {extra_cols}")
+
+        # Realizar predicciones con el modelo cargado
+        try:
             predictions = rf_model.predict(predict_data)
             probabilities = rf_model.predict_proba(predict_data)
 
-            st.write("## <span style='color: #EA937F; font-size: 24px; '>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
+            # Crear DataFrame con los resultados
             result_df = predict_data.copy()
             result_df["Predicción"] = predictions
             result_df["Probabilidad"] = probabilities.max(axis=1)
+
+            st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
             st.dataframe(result_df)
 
             # Crear gráfico solo si hay más de una clase predicha
             fig, ax = plt.subplots()
-
             pred_counts = result_df["Predicción"].value_counts()
 
             if len(pred_counts) > 1:
@@ -302,8 +319,21 @@ if predict_file:
                 ax.set_ylabel("Frecuencia")
                 st.pyplot(fig)
             else:
-                st.warning("Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
+                st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
 
+            # 📌 Botón para descargar los resultados
+            st.download_button(
+                label="Descargar resultados",
+                data=result_df.to_csv(index=False).encode('utf-8'),
+                file_name="resultados_prediccion.csv",
+                mime="text/csv"
+            )
+
+        except Exception as e:
+            st.error(f"❌ Error al realizar las predicciones: {e}")
+
+    else:
+        st.error("❌ El archivo de predicción está vacío o no se pudo procesar.")
 
 #  Cargar el modelo entrenado
 modelo = joblib.load("rfc_model.pkl")
@@ -344,8 +374,8 @@ for col in columnas:
 datos_usuario = np.array(datos_usuario).reshape(1, -1)  
 
 # Depuración: Verificar el número de columnas esperadas
-st.write(f"📌 El modelo espera {modelo.n_features_in_} características.")
-st.write(f"📌 datos_usuario tiene {datos_usuario.shape[1]} características.")
+st.write(f" El modelo espera {modelo.n_features_in_} características.")
+st.write(f" datos_usuario tiene {datos_usuario.shape[1]} características.")
 
 # Verificar que las dimensiones coincidan
 if datos_usuario.shape[1] != modelo.n_features_in_:
