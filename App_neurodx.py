@@ -284,7 +284,7 @@ if st.sidebar.button("Predecir"):
 
 st.download_button(
                 label="Descargar resultados",
-                data=result_df.to_csv(index=False).encode('utf-8'),
+                data=df_reporte.to_csv(index=False).encode('utf-8'),
                 file_name="resultados_prediccion.csv",
                 mime="text/csv"
             )    
