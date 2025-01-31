@@ -211,13 +211,32 @@ data2 = pd.read_csv("dftrain.csv", encoding="latin-1")
 st.write("Vista previa del segundo dataset:")
 st.dataframe(data2.head())
 
-# Verificar si la columna RESPUESTA_BINARIA existe en el dataset
-if "RESPUESTA_BINARIA" in data.columns:
-    X = data2.drop(columns=["RESPUESTA_BINARIA"])
-    y = data2["RESPUESTA_BINARIA"]
+# 1. Identifica y maneja columnas no numéricas:
+for col in data2.columns:
+    if data2[col].dtype == 'object':  # Columna no numérica
+        try:
+            # Intenta convertir a numérica (si son números como cadenas)
+            data2[col] = pd.to_numeric(data2[col], errors='coerce')
+        except:
+            # Si no se puede convertir a numérica, codifica o elimina:
+            if col == 'columna_ordinal':  # Ejemplo: columna ordinal
+                le = LabelEncoder()
+                data2[col] = le.fit_transform(data2[col])
+            elif col == 'columna_nominal': #Ejemplo: columna nominal
+                data2 = pd.get_dummies(data2, columns=[col], drop_first=True)
+            else:  # Si no es útil para el modelo
+                data2 = data2.drop(columns=[col])
 
-    smote = SMOTE(sampling_strategy=0.4, random_state=42)
-    X_resampled, y_resampled = smote.fit_resample(X, y)
+# 2. Maneja los NaN (si los hay después de pd.to_numeric):
+data2 = data2.fillna(0)  # Ejemplo: imputación con 0.  Considera otras estrategias.
+
+# 3. Define X e y (después de la limpieza y conversión):
+X = data2.drop(columns=["RESPUESTA_BINARIA"])
+y = data2["RESPUESTA_BINARIA"]
+
+# 4. Ahora aplica SMOTE:
+smote = SMOTE(sampling_strategy=0.4, random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, y)
 
     st.write("Distribución después del balanceo:", y_resampled.value_counts(normalize=True))
 
