@@ -52,6 +52,15 @@ def mostrar_grafico(data, column_x, column_y, plot_type):
     st.pyplot(plt)
     plt.clf()
 
+def procesar_nuevo_dataset(predict_data, X):
+    """
+    Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de entrenamiento.
+    
+    :param predict_data: DataFrame con los nuevos datos
+    :param X: DataFrame de entrenamiento (solo características)
+    :return: DataFrame procesado listo para predicción
+    """
+
 @st.cache_data
 def cargar_datos_entrenamiento():
     return pd.read_csv("/mnt/data/dftrain.csv", encoding="latin-1")
@@ -284,70 +293,51 @@ if predict_file:
         st.write("## <span style='color: #EA937F; font-size: 24px;'>Datos cargados para predicción:</span>", unsafe_allow_html=True)
         st.dataframe(predict_data.head())
 
-    def procesar_nuevo_dataset(predict_data, dftrain):
-        """
-        Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de referencia.
-        
-        :param nuevo_df: DataFrame con los nuevos datos
-        :param df_referencia: DataFrame de referencia con las columnas y tipos esperados
-        :return: DataFrame procesado
-        """
-        # Copiar la estructura de las columnas del dataset de referencia
-        columnas_referencia = dftrain.columns.tolist()
-        
-        # Convertir columnas categóricas a numéricas usando la estructura de df_referencia
-        for col in predict_data.columns:
-            if col in dftrain.columns and dftrain[col].dtype == 'float64':
-                nuevo_df[col] = pd.to_numeric(nuevo_df[col], errors='coerce')
-        
-        # Asegurar que las columnas estén en el mismo orden y agregar las faltantes
-        for col in columnas_referencia:
-            if col not in predict_data:
-                predict_data[col] = np.nan  # Agregar columnas faltantes con valores NaN
-        
-        predict_data = predict_data[columnas_referencia]  # Reordenar columnas
-        
-        return predict_data
-    
-        # Convertir variables categóricas a numéricas (como en el entrenamiento)
-        predict_data = pd.get_dummies(predict_data, drop_first=True)
-    
-        # Asegurar que las columnas sean iguales a las de entrenamiento
-        missing_cols = set(X.columns) - set(predict_data.columns)
-        extra_cols = set(predict_data.columns) - set(X.columns)
-    
-        # Llenar las columnas faltantes con 0 y eliminar las sobrantes
-        predict_data = predict_data.reindex(columns=X.columns, fill_value=0)
-    
-        st.write(f"🔹 Columnas faltantes rellenadas: {missing_cols}")
-        st.write(f"🔹 Columnas eliminadas del archivo de predicción: {extra_cols}")
-    
-    # Realizar predicciones con el modelo cargado
-    try:
-        predictions = rf_model.predict(predict_data)
-        probabilities = rf_model.predict_proba(predict_data)
-    
-        result_df = predict_data.copy()
-    
-        # Asegúrate de que predictions tenga la longitud correcta
-        if len(predictions) == len(result_df):
-            result_df["Predicción"] = predictions  # Crea la columna "Predicción"
-        else:
-            st.error("Error: La longitud de las predicciones no coincide con la longitud del DataFrame.")
-            st.stop()  # Detiene la ejecución
-    
-        result_df["Probabilidad"] = probabilities.max(axis=1)
-    
-        st.write("## Resultados de las predicciones:")
-        st.dataframe(result_df)
-    
-    except Exception as e:
-        st.error(f"Se produjo un error al realizar las predicciones: {e}")
-    
-    # Crear gráfico solo si hay más de una clase predicha
+       
+            columnas_referencia = dftrain.columns.tolist()
+            
+            # Convertir columnas categóricas a numéricas como en el dataset de referencia
+            predict_data = pd.get_dummies(predict_data)
+
+            # Asegurar que las columnas coincidan exactamente con las del modelo entrenado
+            missing_cols = set(X.columns) - set(predict_data.columns)
+            extra_cols = set(predict_data.columns) - set(X.columns)
+
+            # Agregar las columnas faltantes con valor 0
+            for col in missing_cols:
+                predict_data[col] = 0
+
+            # Eliminar columnas extra que no están en el modelo entrenado
+            predict_data = predict_data[X.columns]
+
+            st.write(f"🔹 Columnas agregadas: {missing_cols}")
+            st.write(f"🔹 Columnas eliminadas: {extra_cols}")
+
+            return predict_data
+
+        # Procesar el dataset para que coincida con el modelo entrenado
+        predict_data = procesar_nuevo_dataset(predict_data, X)
+
+        # Realizar predicciones
+        try:
+            predictions = rf_model.predict(predict_data)
+            probabilities = rf_model.predict_proba(predict_data)
+
+            result_df = predict_data.copy()
+            result_df["Predicción"] = predictions
+            result_df["Probabilidad"] = probabilities.max(axis=1)
+
+            st.write("## Resultados de las predicciones:")
+            st.dataframe(result_df)
+
+        except Exception as e:
+            st.error(f"Se produjo un error al realizar las predicciones: {e}")
+            st.stop()
+
+        # Crear gráfico de distribución de predicciones
         fig, ax = plt.subplots()
         pred_counts = result_df["Predicción"].value_counts()
-    
+
         if len(pred_counts) > 1:
             pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
             ax.set_title("Distribución de Predicciones")
@@ -356,6 +346,7 @@ if predict_file:
             st.pyplot(fig)
         else:
             st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
+
 else:
     st.error("El archivo de predicción está vacío o no se pudo procesar.")
 
