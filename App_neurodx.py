@@ -272,6 +272,8 @@ if "RESPUESTA_BINARIA" in data.columns:
 else:
     st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
+joblib.dump(rf_model, "rfc_model.pkl")
+
 st.write("## <span style='color: #EA937F;'>3. Predicción</span>", unsafe_allow_html=True)
 predict_file = st.file_uploader("Archivo de predicción (CSV):", type=["csv"], key="predict")
 
@@ -342,7 +344,7 @@ modelo = joblib.load("rfc_model.pkl")
 st.sidebar.header(" Ingrese valores para la predicción")
 
 columnas = ["EDAD", "SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO",
-            "LOCALIZACION", "DOSIS_(Gy)",
+            "No._METS", "TAMAÑO (mm)", "LOCALIZACION", "DOSIS_(Gy)",
             "TECNICA", "TRATAMIENTO_SISTEMICO"]
 
 datos_usuario = []
