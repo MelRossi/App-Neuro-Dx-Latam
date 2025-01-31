@@ -52,15 +52,6 @@ def mostrar_grafico(data, column_x, column_y, plot_type):
     st.pyplot(plt)
     plt.clf()
 
-def procesar_nuevo_dataset(predict_data, X):
-    """
-    Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de entrenamiento.
-    
-    :param predict_data: DataFrame con los nuevos datos
-    :param X: DataFrame de entrenamiento (solo características)
-    :return: DataFrame procesado listo para predicción
-    """
-
 @st.cache_data
 def cargar_datos_entrenamiento():
     return pd.read_csv("/mnt/data/dftrain.csv", encoding="latin-1")
@@ -293,7 +284,10 @@ if predict_file:
         st.write("## <span style='color: #EA937F; font-size: 24px;'>Datos cargados para predicción:</span>", unsafe_allow_html=True)
         st.dataframe(predict_data.head())
 
-       
+        def procesar_nuevo_dataset(predict_data, dftrain):
+            """
+            Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de referencia.
+            """
             columnas_referencia = dftrain.columns.tolist()
             
             # Convertir columnas categóricas a numéricas como en el dataset de referencia
