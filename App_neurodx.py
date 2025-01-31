@@ -370,7 +370,7 @@ columnas = ["EDAD", "SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO",
             "No._METS", "TAMAÃ\x91O_(mm)", "LOCALIZACION", "DOSIS_(Gy)",
             "TECNICA", "TRATAMIENTO_SISTEMICO"]
 
-@st.cache_data
+@st.cache_data  # Cachear la función para mayor eficiencia
 def cargar_opciones(data2, columnas):
     opciones = {}
     for col in columnas:
@@ -387,46 +387,37 @@ def cargar_opciones(data2, columnas):
 
 opciones = cargar_opciones(data2, columnas)
 
-# Crear un diccionario para almacenar los datos del usuario
+# Diccionario para almacenar los datos del usuario
 datos_usuario = {}
 
+# Iterar sobre las columnas para crear los widgets de la barra lateral
 for col in columnas:
     if col in opciones:
         if isinstance(opciones[col], list):  # Columna categórica
             valor = st.sidebar.selectbox(f"{col}", opciones[col])
         else:  # Columna numérica
-            valor = st.sidebar.slider(f"{col}", opciones[col]["min"], opciones[col]["max"], opciones[col]["mean"], step=1)
-        datos_usuario[col] = valor  # Agregar el valor al diccionario
+            # Slider para columnas que deben tener valores enteros
+            if col in ["SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO", "No._METS", "LOCALIZACION", "TECNICA", "TRATAMIENTO_SISTEMICO"]:
+                valor = st.sidebar.slider(f"{col}", opciones[col]["min"], opciones[col]["max"], opciones[col]["mean"], step=1)
+            else:
+                valor = st.sidebar.number_input(f"{col}", min_value=opciones[col]["min"], max_value=opciones[col]["max"], value=opciones[col]["mean"])
+
+        datos_usuario[col] = valor
     else:
         st.warning(f"Columna '{col}' no encontrada en el dataset. Se usará un valor predeterminado.")
         datos_usuario[col] = 0  # O un valor predeterminado adecuado
 
-# Convertir a array NumPy y verificar forma
-datos_usuario = np.array(datos_usuario).reshape(1, -1)  
+# Crear un DataFrame con los datos del usuario
+df_usuario = pd.DataFrame([datos_usuario])
 
-# Depuración: Verificar el número de columnas esperadas
-st.write(f" El modelo espera {modelo.n_features_in_} características.")
-st.write(f" datos_usuario tiene {datos_usuario.shape[1]} características.")
-
-# Verificar que las dimensiones coincidan
-if datos_usuario.shape[1] != modelo.n_features_in_:
-    st.error(f"Error: El modelo espera {modelo.n_features_in_} columnas, pero se están pasando {datos_usuario.shape[1]}.")
-    st.stop()  # Detener la ejecución si hay un error
-
-# Intentar hacer la predicción y manejar errores
-try:
-    prediccion = modelo.predict(datos_usuario)
-    resultado = "Positivo (1)" if prediccion[0] == 1 else "Negativo (0)"
-    st.sidebar.success(f"*Predicción del modelo:* {resultado}")
-except ValueError as e:
-    st.error(f"Error en la predicción: {e}")
-except Exception as e:
-    st.error(f"Error inesperado: {e}")
-
+# Realizar la predicción
 if st.sidebar.button("Predecir"):
-    prediccion = modelo.predict(datos_usuario)
-    resultado = "Positivo (1)" if prediccion[0] == 1 else "Negativo (0)"
-    st.sidebar.success(f"*Predicción del modelo:* {resultado}")
+    try:
+        prediccion = modelo.predict(df_usuario)  # Usar el DataFrame para la predicción
+        resultado = "Positivo (1)" if prediccion[0] == 1 else "Negativo (0)"
+        st.sidebar.success(f"*Predicción del modelo:* {resultado}")
+    except Exception as e:
+        st.error(f"Error en la predicción: {e}")
 
 st.download_button(
                 label="Descargar resultados",
