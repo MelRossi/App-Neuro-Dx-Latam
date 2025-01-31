@@ -284,6 +284,31 @@ if predict_file:
         st.write("## <span style='color: #EA937F; font-size: 24px;'>Datos cargados para predicción:</span>", unsafe_allow_html=True)
         st.dataframe(predict_data.head())
 
+def procesar_nuevo_dataset(predict_data, dftrain):
+    """
+    Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de referencia.
+    
+    :param nuevo_df: DataFrame con los nuevos datos
+    :param df_referencia: DataFrame de referencia con las columnas y tipos esperados
+    :return: DataFrame procesado
+    """
+    # Copiar la estructura de las columnas del dataset de referencia
+    columnas_referencia = dftrain.columns.tolist()
+    
+    # Convertir columnas categóricas a numéricas usando la estructura de df_referencia
+    for col in predict_data.columns:
+        if col in dftrain.columns and dftrain[col].dtype == 'float64':
+            nuevo_df[col] = pd.to_numeric(nuevo_df[col], errors='coerce')
+    
+    # Asegurar que las columnas estén en el mismo orden y agregar las faltantes
+    for col in columnas_referencia:
+        if col not in predict_data:
+            predict_data[col] = np.nan  # Agregar columnas faltantes con valores NaN
+    
+    predict_data = predict_data[columnas_referencia]  # Reordenar columnas
+    
+    return predict_data
+
         # Convertir variables categóricas a numéricas (como en el entrenamiento)
         predict_data = pd.get_dummies(predict_data, drop_first=True)
 
