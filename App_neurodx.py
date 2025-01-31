@@ -370,8 +370,6 @@ columnas = ["EDAD", "SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO",
             "No._METS", "TAMAÃ\x91O_(mm)", "LOCALIZACION", "DOSIS_(Gy)",
             "TECNICA", "TRATAMIENTO_SISTEMICO"]
 
-df = df.rename(columns={'TAMAÃ\x91O_(mm)': 'TAMAÑO (mm)'})
-
 @st.cache_data  # Cachear la función para mayor eficiencia
 def cargar_opciones(data2, columnas):
     opciones = {}
