@@ -270,54 +270,61 @@ else:
 st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción de las métricas</span>", unsafe_allow_html=True)
 st.write("""
     **Métricas de evaluación:**
-    - **Precisión (Precision):** ¿Cuántas de las predicciones positivas fueron realmente correctas?
-    - **Recall (Sensibilidad):** ¿Cuántos casos positivos fueron correctamente identificados?
-    - **F1-score:** Equilibrio entre precisión y recall.
-    - **Accuracy (Exactitud):** Porcentaje de predicciones correctas en general.
-    - **Matriz de Confusión:** Representación visual del rendimiento del modelo.
-    """)
+    - Precisión (Precision): De todas las predicciones positivas realizadas por el modelo, ¿cuántas fueron realmente correctas?\n
+    - Recall (Sensibilidad): De todos los casos positivos reales, ¿cuántos fueron correctamente identificados por el modelo?\n
+    - F1-score: Media armónica entre precisión y recall. Ofrece un equilibrio entre precisión y recall.
+    - Accuracy (Exactitud): Del total de predicciones realizadas, ¿cuántas fueron correctas? Mide el rendimiento general del modelo.
+    -  Support (Soporte): Número de muestras en cada clase. Indica cuántos ejemplos reales hay de cada clase.
+    - Macro avg (Promedio macro): Promedio no ponderado de las métricas (precisión, recall, F1) para cada clase.
+    - Weighted avg (Promedio ponderado): Promedio ponderado de las métricas para cada clase, donde los pesos son el soporte (número de muestras en cada clase).""")
 
 st.write("## <span style='color: #EA937F;'>4. Predicción</span>", unsafe_allow_html=True)
 predict_file = st.file_uploader("Archivo de predicción (CSV):", type=["csv"], key="predict")
 
 if predict_file:
     predict_data = cargar_datos(predict_file)
-    if predict_data is not None:
-        st.write("## <span style='color: #EA937F; font-size: 24px; '>Datos cargados para predicción:</span>", unsafe_allow_html=True)
+
+    if predict_data is not None and not predict_data.empty:
+        st.write("##Datos cargados para predicción:")
         st.dataframe(predict_data.head())
 
+        # Convertir variables categóricas a numéricas si es necesario
         predict_data = pd.get_dummies(predict_data, drop_first=True)
         predict_data = predict_data.reindex(columns=X.columns, fill_value=0)
 
-        predictions = modelo.predict(predict_data)
-        probabilities = modelo.predict_proba(predict_data)
+        # Verificar que el modelo está disponible antes de predecir
+        if rf_model:
+            predictions = rf_model.predict(predict_data)
+            probabilities = rf_model.predict_proba(predict_data)
 
-        st.write("## <span style='color: #EA937F; font-size: 24px; '>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
-        result_df = predict_data.copy()
-        result_df["Predicción"] = predictions
-        result_df["Probabilidad"] = probabilities.max(axis=1)
-        st.dataframe(result_df)
+            result_df = predict_data.copy()
+            result_df["Predicción"] = predictions
+            result_df["Probabilidad"] = probabilities.max(axis=1)
 
-# Crear gráfico solo si hay más de una clase predicha
-fig, ax = plt.subplots()
+            st.write("## 🔮 Resultados de las predicciones:")
+            st.dataframe(result_df)
 
-pred_counts = result_df["Predicción"].value_counts()
+            # Verificar antes de usar `value_counts()`
+            if not result_df.empty:
+                pred_counts = result_df["Predicción"].value_counts()
+                fig, ax = plt.subplots()
+                pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
+                ax.set_title("Distribución de Predicciones")
+                ax.set_xlabel("Clase Predicha")
+                ax.set_ylabel("Frecuencia")
+                st.pyplot(fig)
+            else:
+                st.warning("No se generaron predicciones. Verifica el archivo de entrada.")
 
-if len(pred_counts) > 1:
-    pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
-    ax.set_title("Distribución de Predicciones")
-    ax.set_xlabel("Clase Predicha")
-    ax.set_ylabel("Frecuencia")
-    st.pyplot(fig)
-else:
-    st.warning("Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
-
-
-    st.download_button(
-        label="Descargar resultados",
-        data=result_df.to_csv(index=False).encode('utf-8'),
-        file_name="resultados_prediccion.csv",
-        mime="text/csv"
-    )
-    
+            # Descargar resultados
+            st.download_button(
+                label="Descargar resultados",
+                data=result_df.to_csv(index=False).encode('utf-8'),
+                file_name="resultados_prediccion.csv",
+                mime="text/csv"
+            )
+        else:
+            st.error("No se ha cargado un modelo válido para hacer predicciones.")
+    else:
+        st.error("El archivo de predicción está vacío o no se pudo procesar.")
     
