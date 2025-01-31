@@ -322,16 +322,16 @@ def procesar_nuevo_dataset(predict_data, dftrain):
     st.write(f"🔹 Columnas faltantes rellenadas: {missing_cols}")
     st.write(f"🔹 Columnas eliminadas del archivo de predicción: {extra_cols}")
 
-    # Realizar predicciones con el modelo cargado
-    try:
-        predictions = rf_model.predict(predict_data)
-        probabilities = rf_model.predict_proba(predict_data)
+try:
+    predictions = rf_model.predict(predict_data)
+    probabilities = rf_model.predict_proba(predict_data)
 
-        # Crear DataFrame con los resultados
-        result_df = predict_data.copy()
-        result_df["Predicción"] = predictions
-        result_df["Probabilidad"] = probabilities.max(axis=1)
+    # Crear DataFrame con los resultados
+    result_df = predict_data.copy()
+    result_df["Predicción"] = predictions
+    result_df["Probabilidad"] = probabilities.max(axis=1)
 
+    # Mostrar resultados solo si no hay errores
     st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
     st.dataframe(result_df)
 
