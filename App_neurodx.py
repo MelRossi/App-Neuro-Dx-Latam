@@ -205,10 +205,10 @@ elif plot_type == "Boxplot":
 
 # **Selección de la variable objetivo**
 st.write("## <span style='color: #EA937F;'>2. Entrenar de Modelo</span>", unsafe_allow_html=True)
+st.write("## <span style='color: #EA937F; font-size: 24px;'>Modelo elegido -> Random Forest</span>", unsafe_allow_html=True)
 # Carga archivo de entrenamiento
 data2 = pd.read_csv("dftrain.csv", encoding="latin-1")  
 
-st.write("Modelo elegido -> Random Forest")
 st.write("Vista previa del segundo dataset:")
 st.dataframe(data2.head())
 
