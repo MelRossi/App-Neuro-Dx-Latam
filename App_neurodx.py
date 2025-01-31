@@ -258,9 +258,6 @@ if "RESPUESTA_BINARIA" in data.columns:
     df_reporte = pd.DataFrame(reporte).transpose()
     st.table(df_reporte)
 
-else:
-    st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
-
  # Agregar conclusión basada en los resultados
     st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción</span>", unsafe_allow_html=True)
     st.write("""Métricas de evaluación:\n
@@ -271,6 +268,9 @@ else:
 - Support (Soporte): Número de muestras en cada clase. Indica cuántos ejemplos reales hay de cada clase.
 - Macro avg (Promedio macro): Promedio no ponderado de las métricas (precisión, recall, F1) para cada clase.
 - Weighted avg (Promedio ponderado): Promedio ponderado de las métricas para cada clase, donde los pesos son el soporte (número de muestras en cada clase).""")
+
+else:
+    st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
 st.write("## <span style='color: #EA937F;'>3. Predicción</span>", unsafe_allow_html=True)
 predict_file = st.file_uploader("Archivo de predicción (CSV):", type=["csv"], key="predict")
