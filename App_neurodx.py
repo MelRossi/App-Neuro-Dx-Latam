@@ -270,9 +270,9 @@ columnas = ["EDAD", "SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO",
 datos_usuario = []
 for col in columnas:
     valor = st.sidebar.slider(f"{col}", 
-                              float(df[col].min()), 
-                              float(df[col].max()), 
-                              float(df[col].mean()))  
+                              float(data2[col].min()), 
+                              float(data2[col].max()), 
+                              float(data2[col].mean()))  
     datos_usuario.append(valor)
 
 datos_usuario = np.array(datos_usuario).reshape(1, -1)
