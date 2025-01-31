@@ -304,17 +304,19 @@ if predict_file:
             st.write("##Resultados de las predicciones:")
             st.dataframe(result_df)
 
-            # Verificar antes de usar `value_counts()`
-            if not result_df.empty:
-                pred_counts = result_df["Predicción"].value_counts()
-                fig, ax = plt.subplots()
+            # Crear gráfico solo si hay más de una clase predicha
+            fig, ax = plt.subplots()
+
+            pred_counts = result_df["Predicción"].value_counts()
+
+            if len(pred_counts) > 1:
                 pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
                 ax.set_title("Distribución de Predicciones")
                 ax.set_xlabel("Clase Predicha")
                 ax.set_ylabel("Frecuencia")
                 st.pyplot(fig)
             else:
-                st.warning("No se generaron predicciones. Verifica el archivo de entrada.")
+                st.warning("Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo."
 
             # Descargar resultados
             st.download_button(
