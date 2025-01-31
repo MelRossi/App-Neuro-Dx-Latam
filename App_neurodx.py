@@ -270,11 +270,23 @@ columnas = ["EDAD", "SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO",
 
 datos_usuario = []
 for col in columnas:
-    valor = st.sidebar.slider(f"{col}", 
-                              float(data2[col].min()), 
-                              float(data2[col].max()), 
-                              float(data2[col].mean()))  
-    datos_usuario.append(valor)
+    # Check if the column exists in data2
+    if col in data2.columns:
+        # Get minimum and maximum values, handling potential errors
+        min_val = data2[col].min() if pd.api.types.is_numeric_dtype(data2[col]) else 0
+        max_val = data2[col].max() if pd.api.types.is_numeric_dtype(data2[col]) else 1
+        mean_val = data2[col].mean() if pd.api.types.is_numeric_dtype(data2[col]) else 0.5  # or other default
+
+        # Use st.number_input for numeric columns and st.selectbox for categorical
+        if pd.api.types.is_numeric_dtype(data2[col]):
+            valor = st.sidebar.number_input(f"{col}", min_value=min_val, max_value=max_val, value=mean_val)
+        else:
+            unique_values = data2[col].unique().tolist()
+            valor = st.sidebar.selectbox(f"{col}", unique_values)
+        datos_usuario.append(valor)
+    else:
+        st.warning(f"Columna '{col}' no encontrada en el dataset. Se usará un valor predeterminado.")
+        datos_usuario.append(0)  # Or another suitable default value
 
 datos_usuario = np.array(datos_usuario).reshape(1, -1)
 
