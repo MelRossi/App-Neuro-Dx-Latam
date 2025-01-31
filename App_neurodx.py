@@ -322,13 +322,6 @@ if predict_file:
                 st.pyplot(fig)
             else:
                 st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
-#Botón para descargar los resultados
-            st.download_button(
-                label="Descargar resultados",
-                data=result_df.to_csv(index=False).encode('utf-8'),
-                file_name="resultados_prediccion.csv",
-                mime="text/csv"
-            )
 
         except Exception as e:
             st.error(f"Error al realizar las predicciones: {e}")
@@ -400,6 +393,7 @@ if st.sidebar.button("Predecir"):
     except Exception as e:
         st.error(f"Error en la predicción: {e}")
 
+#Botón para descargar los resultados
 st.download_button(
                 label="Descargar resultados",
                 data=df_reporte.to_csv(index=False).encode('utf-8'),
