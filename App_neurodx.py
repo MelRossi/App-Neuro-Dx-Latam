@@ -339,6 +339,27 @@ for col in columnas:
     else:
         st.warning(f"Columna '{col}' no encontrada en el dataset. Se usará un valor predeterminado.")
         datos_usuario.append(0)  # Or another suitable default value
+# Convertir a array NumPy y verificar forma
+datos_usuario = np.array(datos_usuario).reshape(1, -1)  
+
+# Depuración: Verificar el número de columnas esperadas
+st.write(f" El modelo espera {modelo.n_features_in_} características.")
+st.write(f" datos_usuario tiene {datos_usuario.shape[1]} características.")
+
+# Verificar que las dimensiones coincidan
+if datos_usuario.shape[1] != modelo.n_features_in_:
+    st.error(f"Error: El modelo espera {modelo.n_features_in_} columnas, pero se están pasando {datos_usuario.shape[1]}.")
+    st.stop()  # Detener la ejecución si hay un error
+
+# Intentar hacer la predicción y manejar errores
+try:
+    prediccion = modelo.predict(datos_usuario)
+    resultado = "Positivo (1)" if prediccion[0] == 1 else "Negativo (0)"
+    st.sidebar.success(f"✅ *Predicción del modelo:* {resultado}")
+except ValueError as e:
+    st.error(f"⚠️ Error en la predicción: {e}")
+except Exception as e:
+    st.error(f"⚠️ Error inesperado: {e}")
 
 if st.sidebar.button("Predecir"):
     prediccion = modelo.predict(datos_usuario)
