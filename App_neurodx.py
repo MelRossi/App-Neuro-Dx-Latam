@@ -316,7 +316,7 @@ if predict_file:
                 ax.set_ylabel("Frecuencia")
                 st.pyplot(fig)
             else:
-                st.warning("Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo."
+                st.warning("Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
 
             # Descargar resultados
             st.download_button(
