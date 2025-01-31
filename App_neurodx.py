@@ -206,7 +206,7 @@ elif plot_type == "Boxplot":
 # **Selección de la variable objetivo**
 st.write("## <span style='color: #EA937F;'>2. Entrenar de Modelo</span>", unsafe_allow_html=True)
 # Carga archivo de entrenamiento
-data2 = pd.read_csv("dftrain.csv", encoding="latin-1")  # Asegúrate de que este archivo existe
+data2 = pd.read_csv("dftrain.csv", encoding="latin-1")
 
 st.write("Vista previa del segundo dataset:")
 st.dataframe(data2.head())
