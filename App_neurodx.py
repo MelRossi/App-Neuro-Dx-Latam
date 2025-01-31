@@ -301,7 +301,7 @@ if predict_file:
             result_df["Predicción"] = predictions
             result_df["Probabilidad"] = probabilities.max(axis=1)
 
-            st.write("## 🔮 Resultados de las predicciones:")
+            st.write("##Resultados de las predicciones:")
             st.dataframe(result_df)
 
             # Verificar antes de usar `value_counts()`
