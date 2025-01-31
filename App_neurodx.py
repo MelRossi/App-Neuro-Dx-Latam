@@ -91,7 +91,7 @@ st.markdown("""
         margin-top: -20px; /* Reduce la separación entre el título y el subtítulo */
     }
     </style>
-    <h1 class="gradient-text">Neuro Dx Latam</h1>
+    <h1 class="gradient-text">Neuro Tx Latam</h1>
     <p class="subtitle">Modelo predictivo clínico basado en inteligencia artificial</p>
 """, unsafe_allow_html=True)
 
