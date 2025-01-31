@@ -274,13 +274,6 @@ st.write("""Métricas de evaluación:\n
 
 joblib.dump(rf_model, "rfc_model.pkl")
 
-try:
-    modelo, columnas_entrenamiento_codificadas = joblib.load("rfc_model.pkl")
-except Exception as e:
-    st.error(f"Error al cargar el modelo: {e}")
-    st.stop()
-
-# Sección de predicción con archivo
 st.write("## <span style='color: #EA937F;'>3. Predicción</span>", unsafe_allow_html=True)
 predict_file = st.file_uploader("Archivo de predicción (CSV):", type=["csv"], key="predict")
 
@@ -291,28 +284,38 @@ if predict_file:
         st.write("## <span style='color: #EA937F; font-size: 24px;'>Datos cargados para predicción:</span>", unsafe_allow_html=True)
         st.dataframe(predict_data.head())
 
-        def procesar_nuevo_dataset(predict_data, columnas_referencia):
-            """Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de referencia."""
-
-            # Convertir columnas categóricas a numéricas (como en el dataset de referencia)
-            predict_data = pd.get_dummies(predict_data, 
-                                        columns=['TUMOR_PRIMARIO', 'SUBTIPO_HISTOLOGICO', 
-                                                 'LOCALIZACION', 'TECNICA', 
-                                                 'TRATAMIENTO_SISTEMICO'], 
-                                        drop_first=True)
+        def procesar_nuevo_dataset(predict_data, dftrain):
+            """
+            Asegura que el nuevo dataset tenga las mismas columnas y formatos que el dataset de referencia.
+            """
+            columnas_referencia = dftrain.columns.tolist()
+            
+            # Convertir columnas categóricas a numéricas como en el dataset de referencia
+            predict_data = pd.get_dummies(predict_data)
 
             # Asegurar que las columnas coincidan exactamente con las del modelo entrenado
-            predict_data = predict_data.reindex(columns=columnas_referencia, fill_value=0)
+            missing_cols = set(X.columns) - set(predict_data.columns)
+            extra_cols = set(predict_data.columns) - set(X.columns)
+
+            # Agregar las columnas faltantes con valor 0
+            for col in missing_cols:
+                predict_data[col] = 0
+
+            # Eliminar columnas extra que no están en el modelo entrenado
+            predict_data = predict_data[X.columns]
+
+            st.write(f"🔹 Columnas agregadas: {missing_cols}")
+            st.write(f"🔹 Columnas eliminadas: {extra_cols}")
 
             return predict_data
 
         # Procesar el dataset para que coincida con el modelo entrenado
-        predict_data = procesar_nuevo_dataset(predict_data, columnas_entrenamiento_codificadas)
+        predict_data = procesar_nuevo_dataset(predict_data, X)
 
         # Realizar predicciones
         try:
-            predictions = modelo.predict(predict_data)
-            probabilities = modelo.predict_proba(predict_data)
+            predictions = rf_model.predict(predict_data)
+            probabilities = rf_model.predict_proba(predict_data)
 
             result_df = predict_data.copy()
             result_df["Predicción"] = predictions
@@ -321,29 +324,28 @@ if predict_file:
             st.write("## Resultados de las predicciones:")
             st.dataframe(result_df)
 
-            # Crear gráfico de distribución de predicciones
-            fig, ax = plt.subplots()
-            pred_counts = result_df["Predicción"].value_counts()
-
-            if len(pred_counts) > 1:
-                pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
-                ax.set_title("Distribución de Predicciones")
-                ax.set_xlabel("Clase Predicha")
-                ax.set_ylabel("Frecuencia")
-                st.pyplot(fig)
-            else:
-                st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
-
-        except (ValueError, KeyError) as e:  # Capturar excepciones específicas
+        except Exception as e:
             st.error(f"Se produjo un error al realizar las predicciones: {e}")
             st.stop()
 
-        except Exception as e:
-            st.error(f"Se produjo un error inesperado: {e}")
-            st.stop()
+        # Crear gráfico de distribución de predicciones
+        fig, ax = plt.subplots()
+        pred_counts = result_df["Predicción"].value_counts()
 
-    else:
-        st.error("El archivo de predicción está vacío o no se pudo procesar.")
+        if len(pred_counts) > 1:
+            pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
+            ax.set_title("Distribución de Predicciones")
+            ax.set_xlabel("Clase Predicha")
+            ax.set_ylabel("Frecuencia")
+            st.pyplot(fig)
+        else:
+            st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
+
+else:
+    st.error("El archivo de predicción está vacío o no se pudo procesar.")
+
+#  Cargar el modelo entrenado
+modelo = joblib.load("rfc_model.pkl")
         
 # Barra lateral para ingresar valores
 st.sidebar.header(" Ingrese valores para la predicción")
