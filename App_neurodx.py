@@ -200,7 +200,7 @@ elif plot_type == "Boxplot":
         st.warning(f"La variable **{column_y}** no es numérica. No se pueden calcular valores atípicos.")
 
 # **Selección de la variable objetivo**
-st.write("## <span style='color: #EA937F;'>2. Selección de Modelo</span>", unsafe_allow_html=True)
+st.write("## <span style='color: #EA937F;'>2. Entrenamiento de Modelo</span>", unsafe_allow_html=True)
 # Carga archivo de entrenamiento
 data2 = pd.read_csv("dftrain.csv", encoding="latin-1")  # Asegúrate de que este archivo existe
 
@@ -278,7 +278,7 @@ st.write("""
     - Macro avg (Promedio macro): Promedio no ponderado de las métricas (precisión, recall, F1) para cada clase.
     - Weighted avg (Promedio ponderado): Promedio ponderado de las métricas para cada clase, donde los pesos son el soporte (número de muestras en cada clase).""")
 
-st.write("## <span style='color: #EA937F;'>4. Predicción</span>", unsafe_allow_html=True)
+st.write("## <span style='color: #EA937F;'>3. Predicción</span>", unsafe_allow_html=True)
 predict_file = st.file_uploader("Archivo de predicción (CSV):", type=["csv"], key="predict")
 
 if predict_file:
