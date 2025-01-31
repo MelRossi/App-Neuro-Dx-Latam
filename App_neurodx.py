@@ -309,47 +309,47 @@ def procesar_nuevo_dataset(predict_data, dftrain):
     
     return predict_data
 
-        # Convertir variables categóricas a numéricas (como en el entrenamiento)
-        predict_data = pd.get_dummies(predict_data, drop_first=True)
+    # Convertir variables categóricas a numéricas (como en el entrenamiento)
+    predict_data = pd.get_dummies(predict_data, drop_first=True)
 
-        # Asegurar que las columnas sean iguales a las de entrenamiento
-        missing_cols = set(X.columns) - set(predict_data.columns)
-        extra_cols = set(predict_data.columns) - set(X.columns)
+    # Asegurar que las columnas sean iguales a las de entrenamiento
+    missing_cols = set(X.columns) - set(predict_data.columns)
+    extra_cols = set(predict_data.columns) - set(X.columns)
 
-        # Llenar las columnas faltantes con 0 y eliminar las sobrantes
-        predict_data = predict_data.reindex(columns=X.columns, fill_value=0)
+    # Llenar las columnas faltantes con 0 y eliminar las sobrantes
+    predict_data = predict_data.reindex(columns=X.columns, fill_value=0)
 
-        st.write(f"🔹 Columnas faltantes rellenadas: {missing_cols}")
-        st.write(f"🔹 Columnas eliminadas del archivo de predicción: {extra_cols}")
+    st.write(f"🔹 Columnas faltantes rellenadas: {missing_cols}")
+    st.write(f"🔹 Columnas eliminadas del archivo de predicción: {extra_cols}")
 
-        # Realizar predicciones con el modelo cargado
-        try:
-            predictions = rf_model.predict(predict_data)
-            probabilities = rf_model.predict_proba(predict_data)
+    # Realizar predicciones con el modelo cargado
+    try:
+        predictions = rf_model.predict(predict_data)
+        probabilities = rf_model.predict_proba(predict_data)
 
-            # Crear DataFrame con los resultados
-            result_df = predict_data.copy()
-            result_df["Predicción"] = predictions
-            result_df["Probabilidad"] = probabilities.max(axis=1)
+        # Crear DataFrame con los resultados
+        result_df = predict_data.copy()
+        result_df["Predicción"] = predictions
+        result_df["Probabilidad"] = probabilities.max(axis=1)
 
-            st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
-            st.dataframe(result_df)
+        st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
+        st.dataframe(result_df)
 
-            # Crear gráfico solo si hay más de una clase predicha
-            fig, ax = plt.subplots()
-            pred_counts = result_df["Predicción"].value_counts()
+        # Crear gráfico solo si hay más de una clase predicha
+        fig, ax = plt.subplots()
+        pred_counts = result_df["Predicción"].value_counts()
 
-            if len(pred_counts) > 1:
-                pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
-                ax.set_title("Distribución de Predicciones")
-                ax.set_xlabel("Clase Predicha")
-                ax.set_ylabel("Frecuencia")
-                st.pyplot(fig)
-            else:
-                st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
+        if len(pred_counts) > 1:
+            pred_counts.plot(kind="bar", ax=ax, color=["#08306B", "#4292C6"])
+            ax.set_title("Distribución de Predicciones")
+            ax.set_xlabel("Clase Predicha")
+            ax.set_ylabel("Frecuencia")
+            st.pyplot(fig)
+        else:
+            st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
 
-        except Exception as e:
-            st.error(f"Error al realizar las predicciones: {e}")
+    except Exception as e:
+        st.error(f"Error al realizar las predicciones: {e}")
 
     else:
         st.error("El archivo de predicción está vacío o no se pudo procesar.")
