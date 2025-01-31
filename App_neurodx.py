@@ -227,59 +227,67 @@ for col in data2.columns:
                 else:  # Si no es útil para el modelo
                     data2 = data2.drop(columns=[col])
     
-    # 2. Maneja los NaN (si los hay después de pd.to_numeric):
-data2 = data2.fillna(0)  # Ejemplo: imputación con 0.  Considera otras estrategias.
-    
-    # 3. Define X e y (después de la limpieza y conversión):
-X = data2.drop(columns=["RESPUESTA_BINARIA"])
-y = data2["RESPUESTA_BINARIA"]
-    
-    # 4. Ahora aplica SMOTE:
-smote = SMOTE(sampling_strategy=0.4, random_state=42)
-X_resampled, y_resampled = smote.fit_resample(X, y)
+# **Selección de la variable objetivo**
+st.write("## <span style='color: #EA937F;'>2. Entrenar de Modelo</span>", unsafe_allow_html=True)
+# Carga archivo de entrenamiento
+data2 = pd.read_csv("dftrain.csv", encoding="latin-1")  
 
-st.write("Distribución después del balanceo:", y_resampled.value_counts(normalize=True))
+st.write("Vista previa del segundo dataset:")
+st.dataframe(data2.head())
 
-X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+# Verificar si la columna RESPUESTA_BINARIA existe en el dataset
+if "RESPUESTA_BINARIA" in data.columns:
+    X = data2.drop(columns=["RESPUESTA_BINARIA"])
+    y = data2["RESPUESTA_BINARIA"]
 
-rf_model = RandomForestClassifier(random_state=42)
-rf_model.fit(X_train, y_train)
+    smote = SMOTE(sampling_strategy=0.4, random_state=42)
+    X_resampled, y_resampled = smote.fit_resample(X, y)
 
-y_pred = rf_model.predict(X_test)
-y_prob = rf_model.predict_proba(X_test)[:, 1]
+    st.write("Distribución después del balanceo:", y_resampled.value_counts(normalize=True))
 
-accuracy = accuracy_score(y_test, y_pred)
-st.write(f"**Exactitud del modelo:** {accuracy:.4f}")
+    X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
 
-roc_auc = roc_auc_score(y_test, y_prob)
-st.write(f"**AUC-ROC:** {roc_auc:.4f}")
+    rf_model = RandomForestClassifier(random_state=42)
+    rf_model.fit(X_train, y_train)
 
-fpr, tpr, _ = roc_curve(y_test, y_prob)
-fig, ax = plt.subplots()
-ax.plot(fpr, tpr, label=f"ROC curve (AUC = {roc_auc:.2f})")
-ax.plot([0, 1], [0, 1], "k--")
-ax.set_xlabel("False Positive Rate")
-ax.set_ylabel("True Positive Rate")
-ax.set_title("Curva ROC")
-ax.legend(loc="lower right")
-st.pyplot(fig)
+    y_pred = rf_model.predict(X_test)
+    y_prob = rf_model.predict_proba(X_test)[:, 1]
 
-cm = confusion_matrix(y_test, y_pred)
-fig, ax = plt.subplots()
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test), ax=ax)
-ax.set_xlabel("Predicción")
-ax.set_ylabel("Verdadero")
-ax.set_title("Matriz de Confusión")
-st.pyplot(fig)
+    accuracy = accuracy_score(y_test, y_pred)
+    st.write(f"**Exactitud del modelo:** {accuracy:.4f}")
 
-st.text("Reporte de Clasificación:")
-reporte = classification_report(y_test, y_pred, output_dict=True)
-df_reporte = pd.DataFrame(reporte).transpose()
-st.table(df_reporte)
+    roc_auc = roc_auc_score(y_test, y_prob)
+    st.write(f"**AUC-ROC:** {roc_auc:.4f}")
+
+    fpr, tpr, _ = roc_curve(y_test, y_prob)
+    fig, ax = plt.subplots()
+    ax.plot(fpr, tpr, label=f"ROC curve (AUC = {roc_auc:.2f})")
+    ax.plot([0, 1], [0, 1], "k--")
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title("Curva ROC")
+    ax.legend(loc="lower right")
+    st.pyplot(fig)
+
+    cm = confusion_matrix(y_test, y_pred)
+    fig, ax = plt.subplots()
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test), ax=ax)
+    ax.set_xlabel("Predicción")
+    ax.set_ylabel("Verdadero")
+    ax.set_title("Matriz de Confusión")
+    st.pyplot(fig)
+
+    st.text("Reporte de Clasificación:")
+    reporte = classification_report(y_test, y_pred, output_dict=True)
+    df_reporte = pd.DataFrame(reporte).transpose()
+    st.table(df_reporte)
+
+else:
+    st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
  # Agregar conclusión basada en los resultados
-st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción</span>", unsafe_allow_html=True)
-st.write("""Métricas de evaluación:\n
+    st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción</span>", unsafe_allow_html=True)
+    st.write("""Métricas de evaluación:\n
 - Precisión (Precision): De todas las predicciones positivas realizadas por el modelo, ¿cuántas fueron realmente correctas?\n
 - Recall (Sensibilidad): De todos los casos positivos reales, ¿cuántos fueron correctamente identificados por el modelo?\n
 - F1-score: Media armónica entre precisión y recall. Ofrece un equilibrio entre precisión y recall.
@@ -287,8 +295,6 @@ st.write("""Métricas de evaluación:\n
 - Support (Soporte): Número de muestras en cada clase. Indica cuántos ejemplos reales hay de cada clase.
 - Macro avg (Promedio macro): Promedio no ponderado de las métricas (precisión, recall, F1) para cada clase.
 - Weighted avg (Promedio ponderado): Promedio ponderado de las métricas para cada clase, donde los pesos son el soporte (número de muestras en cada clase).""")
-
-st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
 joblib.dump(rf_model, "rfc_model.pkl")
 
@@ -340,8 +346,7 @@ if predict_file:
                 st.pyplot(fig)
             else:
                 st.warning("⚠️ Todas las predicciones pertenecen a una sola clase. Puede ser necesario ajustar los datos o el modelo.")
-
-            # 📌 Botón para descargar los resultados
+#Botón para descargar los resultados
             st.download_button(
                 label="Descargar resultados",
                 data=result_df.to_csv(index=False).encode('utf-8'),
@@ -350,10 +355,10 @@ if predict_file:
             )
 
         except Exception as e:
-            st.error(f"❌ Error al realizar las predicciones: {e}")
+            st.error(f"Error al realizar las predicciones: {e}")
 
     else:
-        st.error("❌ El archivo de predicción está vacío o no se pudo procesar.")
+        st.error("El archivo de predicción está vacío o no se pudo procesar.")
 
 #  Cargar el modelo entrenado
 modelo = joblib.load("rfc_model.pkl")
@@ -406,11 +411,11 @@ if datos_usuario.shape[1] != modelo.n_features_in_:
 try:
     prediccion = modelo.predict(datos_usuario)
     resultado = "Positivo (1)" if prediccion[0] == 1 else "Negativo (0)"
-    st.sidebar.success(f"✅ *Predicción del modelo:* {resultado}")
+    st.sidebar.success(f"*Predicción del modelo:* {resultado}")
 except ValueError as e:
-    st.error(f"⚠️ Error en la predicción: {e}")
+    st.error(f"Error en la predicción: {e}")
 except Exception as e:
-    st.error(f"⚠️ Error inesperado: {e}")
+    st.error(f"Error inesperado: {e}")
 
 if st.sidebar.button("Predecir"):
     prediccion = modelo.predict(datos_usuario)
@@ -422,5 +427,4 @@ st.download_button(
                 data=df_reporte.to_csv(index=False).encode('utf-8'),
                 file_name="resultados_prediccion.csv",
                 mime="text/csv"
-            )    
-    
+            )   
