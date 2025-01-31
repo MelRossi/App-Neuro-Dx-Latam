@@ -370,25 +370,32 @@ columnas = ["EDAD", "SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO",
             "No._METS", "TAMAÑO (mm)", "LOCALIZACION", "DOSIS_(Gy)",
             "TECNICA", "TRATAMIENTO_SISTEMICO"]
 
+@st.cache_data
+def cargar_opciones(data2, columnas):
+    opciones = {}
+    for col in columnas:
+        if col in data2.columns:
+            if data2[col].dtype == 'object':
+                opciones[col] = data2[col].unique().tolist()
+            else:
+                opciones[col] = {
+                    "min": int(data2[col].min()),
+                    "max": int(data2[col].max()),
+                    "mean": int(data2[col].mean())
+                }
+    return opciones
+
+opciones = cargar_opciones(data2, columnas)
+
 # Crear un diccionario para almacenar los datos del usuario
 datos_usuario = {}
 
 for col in columnas:
-    if col in data2.columns:
-        if data2[col].dtype == 'object':  # Columna categórica
-            unique_values = data2[col].unique().tolist()
-            valor = st.sidebar.selectbox(f"{col}", unique_values)
+    if col in opciones:
+        if isinstance(opciones[col], list):  # Columna categórica
+            valor = st.sidebar.selectbox(f"{col}", opciones[col])
         else:  # Columna numérica
-            min_val = data2[col].min()
-            max_val = data2[col].max()
-            mean_val = data2[col].mean()
-
-            # Restricción a enteros para las columnas especificadas
-            if col in ["SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO", "No._METS", "LOCALIZACION", "TECNICA", "TRATAMIENTO_SISTEMICO"]:
-                valor = st.sidebar.slider(f"{col}", int(min_val), int(max_val), int(mean_val), step=1)  # Usar slider con step=1
-            else:
-                valor = st.sidebar.number_input(f"{col}", min_value=min_val, max_value=max_val, value=mean_val)
-
+            valor = st.sidebar.slider(f"{col}", opciones[col]["min"], opciones[col]["max"], opciones[col]["mean"], step=1)
         datos_usuario[col] = valor  # Agregar el valor al diccionario
     else:
         st.warning(f"Columna '{col}' no encontrada en el dataset. Se usará un valor predeterminado.")
