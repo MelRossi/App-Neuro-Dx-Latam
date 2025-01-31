@@ -209,10 +209,10 @@ st.dataframe(data2.head())
 st.write("## <span style='color: #EA937F;'>2. Selección de Columnas</span>", unsafe_allow_html=True)
 
  # Verificar si la columna RESPUESTA_BINARIA existe en el dataset
-    if "RESPUESTA_BINARIA" in data.columns:
+if "RESPUESTA_BINARIA" in data.columns:
         # Separar variables X e y
-        X = data.drop(columns=["RESPUESTA_BINARIA"])
-        y = data["RESPUESTA_BINARIA"]
+        X = data2.drop(columns=["RESPUESTA_BINARIA"])
+        y = data2["RESPUESTA_BINARIA"]
 
         # Aplicar SMOTE para balancear la clase minoritaria
         smote = SMOTE(sampling_strategy=0.4, random_state=42)
@@ -264,12 +264,12 @@ st.write("## <span style='color: #EA937F;'>2. Selección de Columnas</span>", un
         df_reporte = pd.DataFrame(reporte).transpose()
         st.table(df_reporte)
 
-    else:
+else:
         st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
     # Explicación de métricas
-    st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción de las métricas</span>", unsafe_allow_html=True)
-    st.write("""
+st.write("## <span style='color: #EA937F; font-size: 24px;'>Descripción de las métricas</span>", unsafe_allow_html=True)
+st.write("""
     **Métricas de evaluación:**
     - **Precisión (Precision):** ¿Cuántas de las predicciones positivas fueron realmente correctas?
     - **Recall (Sensibilidad):** ¿Cuántos casos positivos fueron correctamente identificados?
@@ -320,4 +320,5 @@ else:
         file_name="resultados_prediccion.csv",
         mime="text/csv"
     )
+    
     
