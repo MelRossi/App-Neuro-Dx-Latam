@@ -376,7 +376,12 @@ def cargar_opciones(data2, columnas):
     for col in columnas:
         if col in data2.columns:
             if data2[col].dtype == 'object':
-                opciones[col] = data2[col].unique().tolist()
+                # Para columnas categóricas, convertir a enteros si es posible
+                try:
+                    opciones[col] = [int(x) for x in data2[col].unique().tolist()]
+                except ValueError:
+                    # Si no se puede convertir a entero, mantener como string
+                    opciones[col] = data2[col].unique().tolist()
             else:
                 opciones[col] = {
                     "min": int(data2[col].min()),
@@ -390,32 +395,17 @@ opciones = cargar_opciones(data2, columnas)
 # Diccionario para almacenar los datos del usuario
 datos_usuario = {}
 
-# Estilo CSS personalizado para los widgets
-st.markdown(
-    """
-    <style>
-    .stSelectbox, .stSlider, .stNumberInput {
-        width: 100%;  # Ajustar el ancho si es necesario
-        margin-bottom: 10px;  # Agregar espacio entre los widgets
-        border: 1px solid #ccc;  # Agregar un borde
-        padding: 5px;  # Agregar relleno interno
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 # Iterar sobre las columnas para crear los widgets de la barra lateral
 for col in columnas:
     if col in opciones:
-        if isinstance(opciones[col], list):  # Columna categórica
-            valor = st.sidebar.selectbox(f"{col}", opciones[col])
+        if isinstance(opciones[col], list):  # Columna categórica o convertida a enteros
+            # Si los valores son enteros, usar un slider
+            if all(isinstance(x, int) for x in opciones[col]):
+                valor = st.sidebar.slider(f"{col}", min(opciones[col]), max(opciones[col]), int(sum(opciones[col]) / len(opciones[col])), step=1)
+            else:  # Si no son enteros, usar un selectbox
+                valor = st.sidebar.selectbox(f"{col}", opciones[col])
         else:  # Columna numérica
-            # Slider para columnas que deben tener valores enteros
-            if col in ["SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO", "No._METS", "LOCALIZACION", "TECNICA", "TRATAMIENTO_SISTEMICO"]:
-                valor = st.sidebar.slider(f"{col}", opciones[col]["min"], opciones[col]["max"], opciones[col]["mean"], step=1)
-            else:
-                valor = st.sidebar.number_input(f"{col}", min_value=opciones[col]["min"], max_value=opciones[col]["max"], value=opciones[col]["mean"])
+            valor = st.sidebar.slider(f"{col}", opciones[col]["min"], opciones[col]["max"], opciones[col]["mean"], step=1)  # Usar slider con step=1
 
         datos_usuario[col] = valor
     else:
