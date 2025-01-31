@@ -288,7 +288,6 @@ st.write("""Métricas de evaluación:\n
 - Macro avg (Promedio macro): Promedio no ponderado de las métricas (precisión, recall, F1) para cada clase.
 - Weighted avg (Promedio ponderado): Promedio ponderado de las métricas para cada clase, donde los pesos son el soporte (número de muestras en cada clase).""")
 
-else:
 st.error("La columna 'RESPUESTA_BINARIA' no está en el dataset. Por favor, revisa los datos.")
 
 joblib.dump(rf_model, "rfc_model.pkl")
