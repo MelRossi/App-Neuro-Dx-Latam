@@ -367,7 +367,7 @@ modelo = joblib.load("rfc_model.pkl")
 st.sidebar.header(" Ingrese valores para la predicción")
 
 columnas = ["EDAD", "SEXO", "TUMOR_PRIMARIO", "SUBTIPO_HISTOLOGICO",
-            "No._METS", "TAMAÑO (mm)", "LOCALIZACION", "DOSIS_(Gy)",
+            "No._METS", "TAMAÃ\x91O_(mm)", "LOCALIZACION", "DOSIS_(Gy)",
             "TECNICA", "TRATAMIENTO_SISTEMICO"]
 
 @st.cache_data
