@@ -208,10 +208,11 @@ st.dataframe(data2.head())
 # **Selección de la variable objetivo**
 st.write("## <span style='color: #EA937F;'>2. Selección de Columnas</span>", unsafe_allow_html=True)
 
-# Separar variables X e y
+ # Verificar si la columna RESPUESTA_BINARIA existe en el dataset
     if "RESPUESTA_BINARIA" in data.columns:
-        X = data2.drop(columns=["RESPUESTA_BINARIA"])
-        y = data2["RESPUESTA_BINARIA"]
+        # Separar variables X e y
+        X = data.drop(columns=["RESPUESTA_BINARIA"])
+        y = data["RESPUESTA_BINARIA"]
 
         # Aplicar SMOTE para balancear la clase minoritaria
         smote = SMOTE(sampling_strategy=0.4, random_state=42)
