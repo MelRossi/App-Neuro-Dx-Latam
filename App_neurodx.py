@@ -327,13 +327,18 @@ if predict_file:
         predictions = rf_model.predict(predict_data)
         probabilities = rf_model.predict_proba(predict_data)
     
-        # Crear DataFrame con los resultados
         result_df = predict_data.copy()
-        result_df["Predicción"] = predictions
+    
+        # Asegúrate de que predictions tenga la longitud correcta
+        if len(predictions) == len(result_df):
+            result_df["Predicción"] = predictions  # Crea la columna "Predicción"
+        else:
+            st.error("Error: La longitud de las predicciones no coincide con la longitud del DataFrame.")
+            st.stop()  # Detiene la ejecución
+    
         result_df["Probabilidad"] = probabilities.max(axis=1)
     
-        # Mostrar resultados solo si no hay errores
-        st.write("## <span style='color: #EA937F; font-size: 24px;'>**Resultados de las predicciones:**</span>", unsafe_allow_html=True)
+        st.write("## Resultados de las predicciones:")
         st.dataframe(result_df)
     
     except Exception as e:
