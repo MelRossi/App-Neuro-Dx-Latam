@@ -418,10 +418,4 @@ st.download_button(
             )   
 
 # Link archivo de análisis
-st.markdown("""
-    <a href="https://github.com/MelRossi/App-Neuro-Tx-Latam/blob/main/An%C3%A1lisis_METS.ipynb" target="_blank">
-        <button style="background-color:#776BDC; color:white; padding:10px; border:none; border-radius:5px;">
-            📥 Descargar Archivo desde GitHub
-        </button>
-    </a>
-""", unsafe_allow_html=True)
+st.link_button("📥 Descargar Archivo desde GitHub", "https://github.com/MelRossi/App-Neuro-Tx-Latam/raw/main/An%C3%A1lisis_METS.ipynb")
