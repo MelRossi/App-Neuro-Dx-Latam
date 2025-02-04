@@ -401,7 +401,7 @@ for col in columnas:
 df_usuario = pd.DataFrame([datos_usuario])
 
 # Realizar la predicción
-if st.sidebar.button("Predecir"):
+if st.sidebar.button(":stethoscope: Predecir"):
     try:
         prediccion = modelo.predict(df_usuario)  # Usar el DataFrame para la predicción
         resultado = "Positivo (1)" if prediccion[0] == 1 else "Negativo (0)"
